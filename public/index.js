@@ -15,7 +15,7 @@ createRoom.addEventListener('click', () => {
         const roomID = urlParams.get('id');
         data = { nickName, roomID }
     }
-    socket.emit('joinRoom', data, ({ roomID }) => {
+    socket.emit('joinRoom', data, ({ roomID, roomName }) => {
         if (!urlParams.has('id')) {
             const div = createAlert(`Invite your friend with this link: ${window.location.origin}/?id=${roomID}`);
             document.body.append(div);
@@ -23,6 +23,7 @@ createRoom.addEventListener('click', () => {
         document.querySelector('body header').remove();
         document.querySelector('body main').classList.remove('d-none');
         document.querySelector('#members').textContent = nickName;
+        document.querySelector('#roomName').textContent = roomName;
     });
 });
 

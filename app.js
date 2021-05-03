@@ -3,6 +3,7 @@ const socketio = require('socket.io');
 const { nanoid } = require('nanoid');
 
 const app = express();
+const rooms = {};
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -34,15 +35,15 @@ io.on('connection', socket => {
             socket.roomID = roomID;
             console.log(`Joined room: ${roomID}`);
             sockets = Array.from(await io.in(roomID).allSockets()).map(socket => io.sockets.sockets.get(socket).nickName);
-            ack({ roomID });
+            ack({ roomID, roomName: rooms[roomID] });
         } else {
             id = nanoid(15);
             socket.join(id);
             socket.roomID = id;
-            socket.roomName = roomName;
+            rooms[id] = roomName;
             console.log(`Created room: ${id}`);
             sockets = Array.from(await io.in(id).allSockets()).map(socket => io.sockets.sockets.get(socket).nickName);
-            ack({ roomID: id });
+            ack({ roomID: id, roomName });
         }
         io.in(id).emit('joinRoom', { sockets });
         socket.to(id).emit('joinRoom', { nickName });
