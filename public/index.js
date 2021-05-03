@@ -17,11 +17,12 @@ createRoom.addEventListener('click', () => {
     }
     socket.emit('joinRoom', data, ({ roomID }) => {
         if (!urlParams.has('id')) {
-            div = createAlert(`Invite your friend with this link: ${window.location.origin}/?id=${roomID}`);
+            const div = createAlert(`Invite your friend with this link: ${window.location.origin}/?id=${roomID}`);
             document.body.append(div);
         }
         document.querySelector('body header').remove();
         document.querySelector('body main').classList.remove('d-none');
+        document.querySelector('#members').textContent = nickName;
     });
 });
 
@@ -39,6 +40,14 @@ socket.on('message', ({ message }) => {
     const newMessage = createNewMessage(message);
     messages.append(newMessage);
     messages.scrollTop = messages.scrollHeight;
+});
+
+socket.on('joinRoom', ({ nickName, sockets }) => {
+    if (nickName) {
+        const div = showUserStatus(`${nickName} entered the room`);
+        messages.append(div);
+    }
+    if (sockets) document.querySelector('#members').textContent = sockets.join(', ');
 });
 
 function createNewMessage(text, alignLeft = true) {
@@ -65,5 +74,15 @@ function createAlert(text) {
     button.setAttribute('type', 'button');
     button.setAttribute('data-bs-dismiss', 'alert');
     div.append(textNode, button);
+    return div;
+}
+
+function showUserStatus(text) {
+    const div = document.createElement('div');
+    const p = document.createElement('p');
+    div.classList.add('my-3', 'text-center');
+    p.classList.add('mb-0', 'd-inline', 'bg-warning', 'text-dark', 'my-3', 'py-2', 'px-3', 'rounded');
+    p.textContent = text;
+    div.append(p);
     return div;
 }
