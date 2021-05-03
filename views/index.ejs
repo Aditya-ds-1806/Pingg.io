@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pingg.io</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+    <link rel="stylesheet" href="/index.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="container d-flex flex-column justify-content-center align-items-center vh-100">
+        <div class="text-center mb-5 py-5">
+            <h1 class="display-1">PINGG.IO</h1>
+            <ul class="d-flex small">
+                <li class="mx-3">Ping with total privacy</li>
+                <li class="mx-3">Messages never stored</li>
+                <li class="mx-3">End-to-end encrypted</li>
+            </ul>
+        </div>
+        <div class="input-group w-50 mb-3">
+            <input type="text" class="display-1 form-control form-control-lg rounded-0 bg-dark border-dark text-green"
+                placeholder="Nick Name" id="nickName">
+        </div>
+        <% if(roomName) { %>
+        <div class="input-group w-50 mb-5">
+            <input type="text" class="display-4 form-control form-control-lg rounded-0 bg-dark border-dark text-green"
+                placeholder="Room Name" id="roomName">
+        </div>
+        <% } %>
+        <button class="btn btn-lg btn-light bg-green border-0 rounded-0" id="createRoom"><%= btnText %></button>
+    </header>
+    <main class="container-fluid border border-dark border-2 px-0 vh-100 d-flex flex-column col-8 d-none">
+        <header class="py-3 bg-dark py-2 px-3">
+            <h1 class="display-6">New Chat</h1>
+            <p class="small mb-0">You, One, Two</p>
+        </header>
+        <main class="flex-fill px-3" id="messages">
+        </main>
+        <footer>
+            <form>
+                <div class="input-group">
+                    <input type="text" class="form-control-lg form-control rounded-0 bg-dark border-dark text-green"
+                        placeholder="Type something...">
+                    <button class="btn btn-light border-0 bg-green rounded-0" type="submit">Send</button>
+                </div>
+            </form>
+        </footer>
+    </main>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"
+        integrity="sha384-LzhRnpGmQP+lOvWruF/lgkcqD+WDVt9fU3H4BWmwP5u5LTmkUGafMcpZKNObVMLU"
+        crossorigin="anonymous"></script>
+    <script src="/index.js"></script>
+</body>
+
+</html>
