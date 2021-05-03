@@ -51,6 +51,12 @@ socket.on('joinRoom', ({ nickName, sockets }) => {
     if (sockets) document.querySelector('#members').textContent = sockets.join(', ');
 });
 
+socket.on('disconnection', ({ nickName, sockets }) => {
+    const div = showUserStatus(`${nickName} left the room`);
+    document.querySelector('#members').textContent = sockets.join(', ');
+    messages.append(div);
+});
+
 function createNewMessage(text, alignLeft = true) {
     const div = document.createElement('div');
     const p = document.createElement('p');
