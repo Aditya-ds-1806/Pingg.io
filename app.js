@@ -51,7 +51,6 @@ io.on('connection', socket => {
     socket.on('disconnect', async () => {
         const { roomID } = socket;
         const sockets = Array.from(await io.in(roomID).allSockets()).map(socket => io.sockets.sockets.get(socket).nickName);
-        console.log(roomID, sockets, socket.nickName);
         socket.to(roomID).emit('disconnection', { nickName: socket.nickName, sockets });
     });
 });
