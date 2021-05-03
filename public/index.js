@@ -3,6 +3,7 @@ const form = document.querySelector('form');
 const messages = document.querySelector('#messages');
 const createRoom = document.querySelector('#createRoom');
 const urlParams = new URLSearchParams(window.location.search);
+const closeBtn = document.querySelector('.btn-close');
 
 createRoom.addEventListener('click', () => {
     const nickName = document.querySelector('#nickName').value;
@@ -14,7 +15,11 @@ createRoom.addEventListener('click', () => {
         const roomID = urlParams.get('id');
         data = { nickName, roomID }
     }
-    socket.emit('joinRoom', data, () => {
+    socket.emit('joinRoom', data, ({ roomID }) => {
+        if (!urlParams.has('id')) {
+            div = createAlert(`Invite your friend with this link: ${window.location.origin}/?id=${roomID}`);
+            document.body.append(div);
+        }
         document.querySelector('body header').remove();
         document.querySelector('body main').classList.remove('d-none');
     });
@@ -45,5 +50,18 @@ function createNewMessage(text, alignLeft = true) {
     p.classList.add('mb-0');
     p.textContent = text;
     div.append(p);
+    return div;
+}
+
+function createAlert(text) {
+    const div = document.createElement('div');
+    const textNode = document.createTextNode(text);
+    const button = document.createElement('button');
+    div.classList.add('alert', 'bg-green', 'fixed-top', 'text-dark', 'alert-dismissible', 'fade', 'show', 'rounded-0');
+    button.classList.add('btn-close', 'bg-green', 'rounded-0');
+    div.setAttribute('role', 'alert');
+    button.setAttribute('type', 'button');
+    button.setAttribute('data-bs-dismiss', 'alert');
+    div.append(textNode, button);
     return div;
 }
