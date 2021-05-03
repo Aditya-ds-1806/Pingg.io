@@ -30,6 +30,7 @@ createRoom.addEventListener('click', () => {
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     const message = document.querySelector('input').value;
+    if (message.trim() === '') return;
     const div = createNewMessage(message, false);
     socket.emit('message', { message });
     document.querySelector('input').value = '';
