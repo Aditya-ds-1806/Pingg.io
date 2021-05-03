@@ -32,11 +32,13 @@ form.addEventListener('submit', (e) => {
     socket.emit('message', { message });
     document.querySelector('input').value = '';
     messages.append(div);
+    messages.scrollTop = messages.scrollHeight;
 });
 
 socket.on('message', ({ message }) => {
     const newMessage = createNewMessage(message);
     messages.append(newMessage);
+    messages.scrollTop = messages.scrollHeight;
 });
 
 function createNewMessage(text, alignLeft = true) {
