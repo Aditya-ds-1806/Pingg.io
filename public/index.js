@@ -4,21 +4,34 @@ const messages = document.querySelector('#messages');
 const createRoom = document.querySelector('#createRoom');
 const urlParams = new URLSearchParams(window.location.search);
 const closeBtn = document.querySelector('.btn-close');
+const DB_NAME = 'pingg.io';
+const enc = new TextEncoder();
+const dec = new TextDecoder();
 
-createRoom.addEventListener('click', () => {
+createRoom.addEventListener('click', async () => {
     const nickName = document.querySelector('#nickName').value;
     let data = {
         nickName,
         roomName: document.querySelector('#roomName')?.value
     }
+    const keyPair = nacl.box.keyPair();
+    await insertToDB({ ...keyPair, id: '1' });
     if (urlParams.has('id')) {
         const roomID = urlParams.get('id');
-        data = { nickName, roomID }
+        data = { nickName, roomID };
     }
     socket.emit('joinRoom', data, ({ roomID, roomName }) => {
         if (!urlParams.has('id')) {
             const div = createAlert(`Invite your friend with this link: ${window.location.origin}/?id=${roomID}`);
             document.body.append(div);
+        } else {
+            console.log('starting key exchange');
+            const params = {
+                publicKey: keyPair.publicKey,
+                getBack: true
+            };
+            console.log(params);
+            socket.emit('keyExchange', params);
         }
         document.querySelector('body header').remove();
         document.querySelector('body main').classList.remove('d-none');
@@ -27,19 +40,35 @@ createRoom.addEventListener('click', () => {
     });
 });
 
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = document.querySelector('input').value;
     if (message.trim() === '') return;
+    const { secretKey } = await findByID('1');
+    const { publicKey } = await findByID('2');
+    const nonce = nacl.randomBytes(24);
+    const encryptedMessage = nacl.box(enc.encode(message), nonce, publicKey, secretKey);
     const div = createNewMessage(message, false);
-    socket.emit('message', { message });
+    socket.emit('message', { message: encryptedMessage, nonce });
     document.querySelector('input').value = '';
     messages.append(div);
     messages.scrollTop = messages.scrollHeight;
 });
 
-socket.on('message', ({ message }) => {
-    const newMessage = createNewMessage(message);
+socket.on('keyExchange', async ({ publicKey, getBack }) => {
+    console.log('received key');
+    await insertToDB({ publicKey: new Uint8Array(publicKey), 'id': '2' });
+    if (!getBack) return;
+    const keyPair = await findByID('1');
+    socket.emit('keyExchange', { publicKey: keyPair.publicKey, getBack: false });
+    console.log('sent key');
+});
+
+socket.on('message', async ({ message, nonce }) => {
+    const { secretKey } = await findByID('1');
+    const { publicKey } = await findByID('2');
+    const decryptedMessage = dec.decode(nacl.box.open(new Uint8Array(message).filter(val => val !== 0), new Uint8Array(nonce), publicKey, secretKey));
+    const newMessage = createNewMessage(decryptedMessage);
     messages.append(newMessage);
     messages.scrollTop = messages.scrollHeight;
 });
@@ -93,4 +122,47 @@ function showUserStatus(text) {
     p.textContent = text;
     div.append(p);
     return div;
+}
+
+function insertToDB(data) {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME);
+
+        req.onerror = (e) => {
+            console.log(e);
+            reject(e);
+        };
+
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            db.createObjectStore("pingg", { keyPath: "id" });
+        };
+
+        req.onsuccess = (e) => {
+            const db = e.target.result;
+            const pingg = db.transaction("pingg", "readwrite").objectStore("pingg");
+            pingg.put(data).onsuccess = (e) => {
+                resolve(e.target.result);
+            };
+        }
+    });
+}
+
+function findByID(id) {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME);
+
+        req.onerror = (e) => {
+            console.log(e);
+            reject(e);
+        };
+
+        req.onsuccess = (e) => {
+            const db = e.target.result;
+            db.transaction("pingg").objectStore("pingg").get(id).onsuccess = function (e) {
+                console.log(e.target.result);
+                resolve(e.target.result);
+            };
+        }
+    });
 }
