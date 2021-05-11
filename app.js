@@ -27,6 +27,14 @@ io.on('connection', socket => {
         const { roomID } = socket;
         socket.to(roomID).emit('message', message);
     });
+
+    socket.on('keyExchange', (data) => {
+        const { roomID } = socket;
+        socket.to(roomID).emit('keyExchange', data);
+        console.log(data);
+        console.log('key exchanged');
+    });
+
     socket.on('joinRoom', async ({ nickName, roomName, roomID }, ack) => {
         socket.nickName = nickName;
         let sockets, id = roomID;
@@ -48,6 +56,7 @@ io.on('connection', socket => {
         io.in(id).emit('joinRoom', { sockets });
         socket.to(id).emit('joinRoom', { nickName });
     });
+
     socket.on('disconnect', async () => {
         const { roomID } = socket;
         const sockets = Array.from(await io.in(roomID).allSockets()).map(socket => io.sockets.sockets.get(socket).nickName);
